@@ -34,7 +34,7 @@ struct directoryEntry {
             * The first eight bytes contain the file name with blank fill.
             * The last three bytes contain the file extension with blank fill.
             */
-  uint8_t  name[11];
+  uint8_t  name[11];   
           /** Entry attributes.
            *
            * The upper two bits of the attribute byte are reserved and should
