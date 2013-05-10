@@ -1,3 +1,25 @@
+/* Arduino File System Library
+ * Copyright (C) 2013 by Enrique Urbina, Moises Martinez and Néstor Bermúdez
+ *
+ * This file is part of the Arduino SdFat Library
+ *
+ * This Library is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This Library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with the Arduino SdFat Library.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+#ifndef SdPfsStructs_h
+#define SdPfsStructs_h
+
 /**
  * \struct masterBootRecord
  *
@@ -122,7 +144,132 @@ struct directoryEntry {
   uint32_t indirectLv3;
 }__attribute__((packed));
 //------------------------------------------------------------------------------
+
+struct PFS_boot{
+  uint32_t rootDirEntryCount;
+           /**
+           * The size of a hardware sector. Valid decimal values for this
+           * field are 512, 1024, 2048, and 4096. For most disks used in
+           * the United States, the value of this field is 512.
+           */
+  uint16_t bytesPerSector;
+
+  char     volumeLabel[11];
+           /** PFS for our project!*/
+  char     fileSystemType[8];
+           /** must be 0X55 */
+  uint8_t  bootSectorSig0;
+           /** must be 0XAA */
+  uint8_t  bootSectorSig1;
+}__attribute__((packed));
+
+typedef struct PFS_boot pfs_boot_t;
+
+struct PFS_info{
+          /**
+           * Contains the last known free cluster count on the volume.
+           * If the value is 0xFFFFFFFF, then the free count is unknown
+           * and must be computed. Any other value can be used, but is
+           * not necessarily correct. It should be range checked at least
+           * to make sure it is <= volume cluster count.
+           */
+  uint32_t freeCount;
+          /**
+           * This is a hint for the FAT driver. It indicates the cluster
+           * number at which the driver should start looking for free clusters.
+           * If the value is 0xFFFFFFFF, then there is no hint and the driver
+           * should start looking at cluster 2.
+           */
+  uint32_t nextFree;
+}__attribute__((packed));
+
+typedef struct PFS_info pfs_info_t;
+
+
+//------------------------------------------------------------------------------
 // Definitions for directory entries
 //
 /** Type name for directoryEntry */
 typedef struct directoryEntry dir_t;
+
+/** escape for name[0] = 0XE5 */
+uint8_t const DIR_NAME_0XE5 = 0X05;
+/** name[0] value for entry that is free after being "deleted" */
+uint8_t const DIR_NAME_DELETED = 0XE5;
+/** name[0] value for entry that is free and no allocated entries follow */
+uint8_t const DIR_NAME_FREE = 0X00;
+/** file is read-only */
+uint8_t const DIR_ATT_READ_ONLY = 0X01;
+/** File should hidden in directory listings */
+uint8_t const DIR_ATT_HIDDEN = 0X02;
+/** Entry is for a system file */
+uint8_t const DIR_ATT_SYSTEM = 0X04;
+/** Directory entry contains the volume label */
+uint8_t const DIR_ATT_VOLUME_ID = 0X08;
+/** Entry is for a directory */
+uint8_t const DIR_ATT_DIRECTORY = 0X10;
+/** Old DOS archive bit for backup support */
+uint8_t const DIR_ATT_ARCHIVE = 0X20;
+/** Test value for long name entry.  Test is
+  (d->attributes & DIR_ATT_LONG_NAME_MASK) == DIR_ATT_LONG_NAME. */
+uint8_t const DIR_ATT_LONG_NAME = 0X0F;
+/** Test mask for long name entry */
+uint8_t const DIR_ATT_LONG_NAME_MASK = 0X3F;
+/** defined attribute bits */
+uint8_t const DIR_ATT_DEFINED_BITS = 0X3F;
+/** Test mask for allowing entry to contain subdirectories*/
+uint8_t const DIR_ATT_ALLOW_SUBDIRS = 0X80;
+/** Test mask for allowing entry to contain files*/
+uint8_t const DIR_ATT_ALLOW_FILES = 0X40;
+/** Directory entry is part of a long name
+ * \param[in] dir Pointer to a directory entry.
+ *
+ * \return true if the entry is for part of a long name else false.
+ */
+static inline uint8_t DIR_IS_LONG_NAME(const dir_t* dir) {
+  return (dir->attributes & DIR_ATT_LONG_NAME_MASK) == DIR_ATT_LONG_NAME;
+}
+/** Mask for file/subdirectory tests */
+uint8_t const DIR_ATT_FILE_TYPE_MASK = (DIR_ATT_VOLUME_ID | DIR_ATT_DIRECTORY);
+/** Directory entry is for a file
+ * \param[in] dir Pointer to a directory entry.
+ *
+ * \return true if the entry is for a normal file else false.
+ */
+static inline uint8_t DIR_IS_FILE(const dir_t* dir) {
+  return (dir->attributes & DIR_ATT_FILE_TYPE_MASK) == 0;
+}
+/** Directory entry is for a subdirectory
+ * \param[in] dir Pointer to a directory entry.
+ *
+ * \return true if the entry is for a subdirectory else false.
+ */
+static inline uint8_t DIR_IS_SUBDIR(const dir_t* dir) {
+  return (dir->attributes & DIR_ATT_FILE_TYPE_MASK) == DIR_ATT_DIRECTORY;
+}
+/** Directory entry is for a file or subdirectory
+ * \param[in] dir Pointer to a directory entry.
+ *
+ * \return true if the entry is for a normal file or subdirectory else false.
+ */
+static inline uint8_t DIR_IS_FILE_OR_SUBDIR(const dir_t* dir) {
+  return (dir->attributes & DIR_ATT_VOLUME_ID) == 0;
+}
+/** Directory entry allows subdirectories on it (ONLY VALID FOR ROOT DIRECTORY!)
+ * \param[in] dir Pointer to a directory entry.
+ *
+ * \return true if the entry allows creating subdirs else false.
+ */
+static inline uint8_t DIR_ALLOW_SUBDIRS(const dir_t* dir) {
+  return (dir->attributes & DIR_ALLOW_SUBDIRS) != 0;
+}
+/** Directory entry allows files on it (level 1 directory)
+ * \param[in] dir Pointer to a directory entry.
+ *
+ * \return true if the entry allows creating files else false.
+ */
+static inline uint8_t DIR_ALLOW_FILES(const dir_t* dir) {
+  return (dir->attributes & DIR_ATT_ALLOW_FILES) != 0;
+}
+
+#endif  //SdPfsStructs_h
