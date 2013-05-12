@@ -1,7 +1,7 @@
-/* Arduino File System Library
+/* Arduino PFS Library
  * Copyright (C) 2013 by Enrique Urbina, Moises Martinez and Néstor Bermúdez
  *
- * This file is part of the Arduino SdFat Library
+ * This file is part of the Arduino PFS Library
  *
  * This Library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,8 +14,11 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with the Arduino SdFat Library.  If not, see
+ * along with the Arduino PFS Library.  If not, see
  * <http://www.gnu.org/licenses/>.
+ */
+/*
+ *Creditos: https://github.com/frasermac/sdfatlib
  */
 #ifndef SdPfsStructs_h
 #define SdPfsStructs_h
@@ -123,44 +126,73 @@ struct directoryEntry {
            * UPDATE: We will use bit 0 for allow_subdirs and bit 1 for allow_files
            */
   uint8_t  attributes;
-          /**
-           * High word of this entry's first cluster number (always 0 for a
-           * FAT12 or FAT16 volume).
-           */
-  uint16_t firstClusterHigh;
-           /** Time of last write. File creation is considered a write. */
-  uint16_t lastWriteTime;
-           /** Date of last write. File creation is considered a write. */
-  uint16_t lastWriteDate;
-           /** Low word of this entry's first cluster number. */
-  uint16_t firstClusterLow;
            /** 32-bit unsigned holding this file's size in bytes. */
   uint32_t fileSize;
            /** 32-bit unsigned holding the block count used for this file. */
   uint32_t blockCount;
-           /** 32-bit unsigned pointers (double indirection) */
-  uint32_t indirectLv2[10];
-           /** 32-bit unsigned pointer to a third level indirect block */
+           /** 32-bit unsigned pointers (double indirection) if data for a file
+            *  direct data blocks if dir_t for a directory.
+            */
+  uint32_t indirectLv2[9];
+           /** 32-bit unsigned pointer to a third level indirect block if data for a file
+            *  first level indirection if directory.
+            */
   uint32_t indirectLv3;
+  
+  uint8_t  type;
 }__attribute__((packed));
+
+typedef struct directoryEntry dir_t;
 //------------------------------------------------------------------------------
 
 struct PFS_boot{
-  uint32_t rootDirEntryCount;
+           /**
+           * Maximum number of directories to be created on the root directory
+           */
+  uint32_t rootDirEntryMax;
+             /**
+           * Size of the bitmap in bytes
+           */
+  uint32_t bitmapSize;
            /**
            * The size of a hardware sector. Valid decimal values for this
            * field are 512, 1024, 2048, and 4096. For most disks used in
            * the United States, the value of this field is 512.
            */
   uint16_t bytesPerSector;
-
-  char     volumeLabel[11];
+            /**
+           * Sector number of FSINFO structure in the reserved area of the
+           * PFS volume. Usually 1.
+           */
+  uint16_t pfsInfo;
+          /**
+           * If nonzero, indicates the sector number in the reserved area
+           * of the volume of a copy of the boot record. Usually 6.
+           * No value other than 6 is recommended.
+           */
+  uint16_t pfsBackBootBlock;
+            /**
+           * The number of copies of the PFS on the volume.
+           * The value of this field is always 2.
+           */
+  uint8_t  pfsCount;
+         /**
+           * Count of sectors occupied by one PFS on PFS volumes.
+           */
+  uint32_t sectorsPerPfs;
+            /**
+           * The number of sectors preceding the start of the first PFS,
+           * including the boot sector. The value of this field is always 1.
+           */
+  uint16_t reservedSectorCount;
            /** PFS for our project!*/
-  char     fileSystemType[8];
+  char     fileSystemType[6];
            /** must be 0X55 */
   uint8_t  bootSectorSig0;
            /** must be 0XAA */
   uint8_t  bootSectorSig1;
+
+  uint8_t  padding[3];
 }__attribute__((packed));
 
 typedef struct PFS_boot pfs_boot_t;

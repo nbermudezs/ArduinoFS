@@ -1,7 +1,7 @@
-/* Arduino File System Library
+/* Arduino PFS Library
  * Copyright (C) 2013 by Enrique Urbina, Moises Martinez and Néstor Bermúdez
  *
- * This file is part of the Arduino SdFat Library
+ * This file is part of the Arduino PFS Library
  *
  * This Library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,12 +14,12 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with the Arduino SdFat Library.  If not, see
+ * along with the Arduino PFS Library.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-/**
-//Creditos: https://github.com/frasermac/sdfatlib
-*/
+/*
+ *Creditos: https://github.com/frasermac/sdfatlib
+ */
 
 #ifndef Sd2Card_h
 #define Sd2Card_h

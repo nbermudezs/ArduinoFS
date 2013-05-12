@@ -1,7 +1,7 @@
-/* Arduino File System Library
+/* Arduino PFS Library
  * Copyright (C) 2013 by Enrique Urbina, Moises Martinez and Néstor Bermúdez
  *
- * This file is part of the Arduino SdFat Library
+ * This file is part of the Arduino PFS Library
  *
  * This Library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,21 +14,24 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with the Arduino SdFat Library.  If not, see
+ * along with the Arduino PFS Library.  If not, see
  * <http://www.gnu.org/licenses/>.
+ */
+/*
+ *Creditos: https://github.com/frasermac/sdfatlib
  */
 #ifndef SdPfsConfig_h
 #define SdPfsConfig_h
 #include <stdint.h>
 /**
- * Set USE_SEPARATE_FAT_CACHE nonzero to use a second 512 byte cache
+ * Set USE_SEPARATE_PFS_CACHE nonzero to use a second 512 byte cache
  * for FAT table entries.  Improves performance for large writes that
  * are not a multiple of 512 bytes.
  */
 #ifdef __arm__
-#define USE_SEPARATE_FAT_CACHE 1
-#else  // __arm__
-#define USE_SEPARATE_FAT_CACHE 0
+#define USE_SEPARATE_PFS_CACHE 1
+#else  // __arm__ Arduino Uno es AVR asi que no usara otra cache!
+#define USE_SEPARATE_PFS_CACHE 0	
 #endif  // __arm__
 //------------------------------------------------------------------------------
 /**
@@ -40,6 +43,14 @@
 #define USE_MULTI_BLOCK_SD_IO 1
 #endif
 //------------------------------------------------------------------------------
+/**
+ *  If set to 1 use just read methods for SD on Arduino, else check for USE_MEDIUM_API
+ */
+#define USE_SMALL_API 1
+ /**
+ *  If set to 1 use just read+write methods for SD on Arduino, else FULL API is used
+ */
+#define USE_MEDIUM_API 0
 /**
  *  Force use of Arduino Standard SPI library if USE_ARDUINO_SPI_LIBRARY
  * is nonzero.
@@ -113,6 +124,12 @@
  * Set USE_SOFTWARE_SPI nonzero to always use software SPI on AVR.
  */
 #define USE_SOFTWARE_SPI 0
+ /**
+ * Set USE_PFS_BITMAP nonzero to load to memory the bitmap region.
+ * Not recommended on embeded arch.
+ */
+#define USE_PFS_BITMAP 0
+
 // define software SPI pins so Mega can use unmodified 168/328 shields
 /** Default Software SPI chip select pin */
 uint8_t const SOFT_SPI_CS_PIN = 10;
