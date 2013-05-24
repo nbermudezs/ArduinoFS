@@ -1,0 +1,18 @@
+Already implemented:
+SdPfsStructs.h
+SdMeta.h
+Sd2Card.h
+Sd2Card.cpp
+
+
+Don't change:
+ios.h
+iostream.h
+istream.cpp
+istream.h
+ostream.cpp
+ostream.h
+MinimumSerial.h
+MinimumSerial.cpp
+bufstream.h
+ArduinoStream.h
