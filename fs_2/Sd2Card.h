@@ -50,7 +50,7 @@ uint8_t const SPI_SIXTEENTH_SPEED = 8;
 const uint8_t MAX_SCK_RATE_ID = 14;
 //------------------------------------------------------------------------------
 /** init timeout ms */
-uint16_t const SD_INIT_TIMEOUT = 2000;
+uint16_t const SD_INIT_TIMEOUT = 4000;
 /** erase timeout ms */
 uint16_t const SD_ERASE_TIMEOUT = 10000;
 /** read timeout ms */

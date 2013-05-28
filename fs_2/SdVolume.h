@@ -53,29 +53,42 @@ class SdVolume {
   }
 
   bool init(Sd2Card* dev) { return init(dev, 1) ? true : init(dev, 0);}
-  bool init(Sd2Card* dev, uint8_t part);
+  bool init(Sd2Card* dev, uint8_t part); //ya
 
   // inline functions that return volume info
   /** \return The volume's cluster size in blocks. */
-  uint8_t blocksPerCluster() const {return blocksPerCluster_;}
+  uint8_t blocksPerCluster() const {return blocksPerCluster_;} //ya
   /** \return The total number of clusters in the volume. */
-  uint32_t clusterCount() const {return clusterCount_;}
+  uint32_t clusterCount() const {return clusterCount_;} //ya
   /** \return The shift count required to multiply by blocksPerCluster. */
-  uint8_t clusterSizeShift() const {return clusterSizeShift_;}
+  uint8_t clusterSizeShift() const {return clusterSizeShift_;} //ya
   /** \return The logical block number for the start of file data. */
-  uint32_t dataStartBlock() const {return dataStartBlock_;}
+  uint32_t dataStartBlock() const {return dataStartBlock_;} //ya
   /** \return The logical block number for the start of the first PFS. */
-  uint32_t pfsStartBlock() const {return pfsStartBlock_;}
+  uint32_t pfsStartBlock() const {return pfsStartBlock_;} //ya
   int32_t freeClusterCount();
   /** \return The number of entries in the root directory for FAT16 volumes. */
-  uint32_t rootDirEntryCount() const {return rootDirEntryCount_;}
+  uint32_t rootDirEntryCount() const {return rootDirEntryCount_;} //ya
   /** \return The logical block number for the start of the root directory
        on FAT16 volumes or the first cluster number on FAT32 volumes. */
-  uint32_t rootDirStart() const {return rootDirStart_;}
+  uint32_t rootDirStart() const {return rootDirStart_;} //ya
 
-  Sd2Card* sdCard() {return sdCard_;}
+  Sd2Card* sdCard() {return sdCard_;} //ya
 
-  bool dbgPfs(uint32_t n, uint32_t* v) {return pfsGet(n, v);}
+  bool dbgPfs(uint32_t n, uint32_t* v) {return pfsGet(n, v);} //ya
+
+  static const uint8_t CACHE_STATUS_DIRTY = 1;
+  static const uint8_t CACHE_STATUS_PFS_BLOCK = 2;
+  static const uint8_t CACHE_STATUS_MASK
+     = CACHE_STATUS_DIRTY | CACHE_STATUS_PFS_BLOCK;
+  static const uint8_t CACHE_OPTION_NO_READ = 4;
+  // value for option argument in cacheFetch to indicate read from cache
+  static uint8_t const CACHE_FOR_READ = 0;
+  // value for option argument in cacheFetch to indicate write to cache
+  static uint8_t const CACHE_FOR_WRITE = CACHE_STATUS_DIRTY;
+  // reserve cache block with no read
+  static uint8_t const CACHE_RESERVE_FOR_WRITE
+     = CACHE_STATUS_DIRTY | CACHE_OPTION_NO_READ;
 
 private:
   friend class SdBaseFile;      // Allow SdBaseFile access to SdVolume private data.
@@ -100,42 +113,31 @@ private:
   static Sd2Card* sdCard_;            // Sd2Card object for cache
   
   
-  static bool cacheSync();
-  static cache_t* cacheFetchPfs(uint32_t blockNumber, uint8_t options);
-  static cache_t* cacheFetch(uint32_t blockNumber, uint8_t options);
-  static void cacheInvalidate();
-  static bool cacheWriteData();
-  static bool cacheWritePfs();
+  static bool cacheSync(); //ya
+  static cache_t* cacheFetchPfs(uint32_t blockNumber, uint8_t options); //ya
+  static cache_t* cacheFetch(uint32_t blockNumber, uint8_t options); //ya
+  static void cacheInvalidate(); //ya
+  static bool cacheWriteData(); //ya
+  static bool cacheWritePfs(); //ya
 
-  bool pfsGet(uint32_t cluster, uint32_t* value);
-  bool pfsPut(uint32_t cluster, uint32_t value);
-  bool pfsPutEOC(uint32_t cluster) {return pfsPut(cluster, 0x0FFFFFFF);}
-  uint32_t clusterStartBlock(uint32_t cluster) const;
-  uint8_t blockOfCluster(uint32_t position) const {return (position >> 9) & (blocksPerCluster_ - 1);}
-  bool freeChain(uint32_t cluster);
+  bool pfsGet(uint32_t cluster, uint32_t* value); //ya
+  bool pfsPut(uint32_t cluster, uint32_t value); //ya
+  bool pfsPutEOC(uint32_t cluster) {return pfsPut(cluster, 0x0FFFFFFF);} //ya
+  uint32_t clusterStartBlock(uint32_t cluster) const; //ya
+  uint8_t blockOfCluster(uint32_t position) const {return (position >> 9) & (blocksPerCluster_ - 1);} //ya
+  bool freeChain(uint32_t cluster); //ya
   bool isEOC(uint32_t cluster) const {return  cluster >= PFSEOC_MIN;}
-  cache_t *cacheAddress() {return &cacheBuffer_;}
-  uint32_t cacheBlockNumber() {return cacheBlockNumber_;}
+  cache_t *cacheAddress() {return &cacheBuffer_;} //ya
+  uint32_t cacheBlockNumber() {return cacheBlockNumber_;} //ya
+
+  bool allocContiguous(uint32_t count, uint32_t* curCluster);
 
   bool readBlock(uint32_t block, uint8_t* dst) {
-    return sdCard_->readBlock(block, dst);}
+    return sdCard_->readBlock(block, dst);
+  } //ya
   bool writeBlock(uint32_t block, const uint8_t* dst) {
     return sdCard_->writeBlock(block, dst);
-  }
-
-// use of static functions save a bit of flash - maybe not worth complexity
-  static const uint8_t CACHE_STATUS_DIRTY = 1;
-  static const uint8_t CACHE_STATUS_PFS_BLOCK = 2;
-  static const uint8_t CACHE_STATUS_MASK
-     = CACHE_STATUS_DIRTY | CACHE_STATUS_PFS_BLOCK;
-  static const uint8_t CACHE_OPTION_NO_READ = 4;
-  // value for option argument in cacheFetch to indicate read from cache
-  static uint8_t const CACHE_FOR_READ = 0;
-  // value for option argument in cacheFetch to indicate write to cache
-  static uint8_t const CACHE_FOR_WRITE = CACHE_STATUS_DIRTY;
-  // reserve cache block with no read
-  static uint8_t const CACHE_RESERVE_FOR_WRITE
-     = CACHE_STATUS_DIRTY | CACHE_OPTION_NO_READ;
+  } //ya
 };
 
  #endif // SdVolume_h

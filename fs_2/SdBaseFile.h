@@ -56,50 +56,58 @@ struct PfsPos_t {
 class SdBaseFile {
  public:
   SdBaseFile() : type_(PFS_FILE_TYPE_CLOSED) {}
+  SdBaseFile(const char* path, uint8_t oflag); //ya
 #if DESTRUCTOR_CLOSES_FILE
-  ~SdBaseFile() {if(isOpen()) close();}
+  ~SdBaseFile() {if(isOpen()) close();} //ya
 #endif  // DESTRUCTOR_CLOSES_FILE
 
-  void getpos(PfsPos_t* pos);
-  void setpos(PfsPos_t* pos);
+  void getpos(PfsPos_t* pos); //ya
+  void setpos(PfsPos_t* pos); //ya
 
-  uint32_t available() {return fileSize() - curPosition();}  
+  uint32_t available() {return fileSize() - curPosition();}  //ya
 
-  uint32_t curCluster() const {return curCluster_;}
-  uint32_t curPosition() const {return curPosition_;}
+  uint32_t curCluster() const {return curCluster_;} //ya
+  uint32_t curPosition() const {return curPosition_;} //ya
 
-  static SdBaseFile* cwd() {return SdBaseFile::cwd_;}  
+  static SdBaseFile* cwd() {return SdBaseFile::cwd_;}   //ya
 
-  uint32_t fileSize() const {return fileSize_;}
-  bool getFilename(char* name);
+  uint32_t fileSize() const {return fileSize_;} //ya
+  bool getFilename(char* name); //ya
+  bool exists(const char* name);
 
-  bool isDir() const {return type_ >= PFS_FILE_TYPE_MIN_DIR;}
-  bool isFile() const {return type_ == PFS_FILE_TYPE_NORMAL;}
-  bool isOpen() const {return type_ != PFS_FILE_TYPE_CLOSED;}
-  bool isSubDir() const {return type_ == PFS_FILE_TYPE_SUBDIR;}
-  bool isRoot() const {return type_ == PFS_FILE_TYPE_ROOT_FIXED;}
+  bool isDir() const {return type_ >= PFS_FILE_TYPE_MIN_DIR;} //ya
+  bool isFile() const {return type_ == PFS_FILE_TYPE_NORMAL;} //ya
+  bool isOpen() const {return type_ != PFS_FILE_TYPE_CLOSED;} //ya
+  bool isSubDir() const {return type_ == PFS_FILE_TYPE_SUBDIR;} //ya
+  bool isRoot() const {return type_ == PFS_FILE_TYPE_ROOT32;} //ya
   
-  bool open(const char* path, uint8_t oflag = O_READ);
-  bool open(SdBaseFile* dirFile, const char* path, uint8_t oflag);
-  bool open(SdBaseFile* dirFile, const uint8_t dname[11], uint8_t oflag);
-  bool openRoot(SdVolume* vol);
-  bool openNext(SdBaseFile* dirFile, uint8_t oflag);
-  bool close();
+  bool open(const char* path, uint8_t oflag = O_READ); //ya
+  bool open(SdBaseFile* dirFile, const char* path, uint8_t oflag); //ya
+  bool open(SdBaseFile* dirFile, const uint8_t dname[11], uint8_t oflag); //ya
+  bool openRoot(SdVolume* vol); //ya
+  bool openNext(SdBaseFile* dirFile, uint8_t oflag); //ya
+  bool close(); //ya
 
   #if !ENABLED_READ_ONLY
-  bool mkdir(SdBaseFile* dir, const char dname[11]);
-  #endif
-  static bool remove(SdBaseFile* dirFile, const char* path);
-
-  int16_t read();
-  int read(void* buf, size_t nbyte);
-  int peek();
+  bool mkdir(SdBaseFile* dir, const char dname[11]); //ya
+  cache_t* addDirCluster(); //ya
+  static bool remove(SdBaseFile* dirFile, const char* path); //ya
+  bool remove(); //ya
+  bool truncate(); //ya
+  bool rmdir(); //ya
   int write(const void* buf, size_t nbyte);
+  #endif  
+
+  static void dirName(const dir_t& dir, char* name);
+
+  int16_t read(); //ya
+  int read(void* buf, size_t nbyte); //ya
+  int peek(); //ya  
   
-  bool seek(uint32_t pos, uint8_t option);
-  void rewind() {seekSet(0);}
+  bool seek(uint32_t pos, uint8_t option); //ya
+  void rewind() {seekSet(0);} //ya
   
-  bool sync();
+  bool sync(); //ya
 
 private:
   friend class SdPfs;       // allow SdPfs to set cwd_  
@@ -113,13 +121,19 @@ private:
   
   static SdBaseFile* cwd_;  // global pointer to cwd dir
 
-  bool seekSet(uint32_t pos);
-  bool seekEnd(int32_t offset = 0) {return seekSet(fileSize_ + offset);}
-  bool seekCur(int32_t offset) {return seekSet(curPosition_ + offset); }
+  bool seekSet(uint32_t pos); //ya
+  bool seekEnd(int32_t offset = 0) {return seekSet(fileSize_ + offset);} //ya
+  bool seekCur(int32_t offset) {return seekSet(curPosition_ + offset); } //ya
 
-  dir_t* cacheDirEntry(uint8_t action);
-  static bool make83Name(const char* str, char* name, const char** ptr);
-  bool setDirSize();
+  /** Cache related*/
+  bool openCachedEntry(uint8_t cacheIndex, uint8_t oflags); //ya
+  dir_t* readDirCache(); //ya
+  dir_t* cacheDirEntry(uint8_t action); //ya
+  bool addCluster(); //ya
+
+
+  static bool make83Name(const char* str, char* name, const char** ptr); //ya
+  bool setDirSize(); //ya
 
   // bits defined in flags_
   // should be 0X0F

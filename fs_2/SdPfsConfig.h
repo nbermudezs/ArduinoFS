@@ -95,7 +95,9 @@
  */
 #define USE_PFS_BITMAP 0
 
-#define ENABLED_READ_ONLY 1
+#define ENABLED_READ_ONLY 0 //luego lo cambio, esto es solo para pruebas
+
+#define USING_APP 0
 
 // define software SPI pins so Mega can use unmodified 168/328 shields
 /** Default Software SPI chip select pin */

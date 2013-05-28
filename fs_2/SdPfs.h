@@ -60,15 +60,21 @@ class SdPfs {
   Sd2Card* card() {return &card_;}
   bool chdir(bool set_cwd = false);
   bool chdir(const char* path, bool set_cwd = false);
+  void chvol();
   bool exists(const char* name);
   bool begin(uint8_t chipSelectPin = SD_CHIP_SELECT_PIN,
     uint8_t sckRateID = SPI_FULL_SPEED);
+  #if USING_APP
   void ls(uint8_t flags = 0);
   void ls(Print* pr, uint8_t flags = 0);
-  bool mkdir(const char* path, bool pFlag = true);
-  bool remove(const char* path);
   bool rename(const char *oldPath, const char *newPath);
+  #endif
+
+  #if ENABLED_READ_ONLY
+  bool mkdir(const char* path);
+  bool remove(const char* path);  
   bool rmdir(const char* path);
+  #endif
 
   SdVolume* vol() {return &vol_;}
   /** \return a pointer to the volume working directory. */

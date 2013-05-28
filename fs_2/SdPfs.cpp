@@ -110,6 +110,7 @@ void SdPfs::chvol() {
 bool SdPfs::exists(const char* name) {
   return vwd_.exists(name);
 }
+#if USING_APP
 //------------------------------------------------------------------------------
 /** List the directory contents of the volume working directory to stdOut.
  *
@@ -120,50 +121,10 @@ bool SdPfs::exists(const char* name) {
  * LS_SIZE - %Print file size.
  *
  * LS_R - Recursive list of subdirectories.
+ * NO USAR!!!!! SOLO SERVIRA PARA LA APP Y HAY QUE REESCRIBIRLA PARA QUE REGRESE UN ARREGLO!!
  */
 void SdPfs::ls(uint8_t flags) {
   vwd_.ls(stdOut_, flags);
-}
-//------------------------------------------------------------------------------
-/** List the directory contents of the volume working directory.
- *
- * \param[in] pr Print stream for list.
- *
- * \param[in] flags The inclusive OR of
- *
- * LS_DATE - %Print file modification date
- *
- * LS_SIZE - %Print file size.
- *
- * LS_R - Recursive list of subdirectories.
- */
-void SdPfs::ls(Print* pr, uint8_t flags) {
-  vwd_.ls(pr, flags);
-}
-//------------------------------------------------------------------------------
-/** Make a subdirectory in the volume working directory.
- *
- * \param[in] path A path with a valid 8.3 DOS name for the subdirectory.
- *
- * \param[in] pFlag Create missing parent directories if true.
- *
- * \return The value one, true, is returned for success and
- * the value zero, false, is returned for failure.
- */
-bool SdPfs::mkdir(const char* path, bool pFlag) {
-  SdBaseFile sub;
-  return sub.mkdir(&vwd_, path, pFlag);
-}
-//------------------------------------------------------------------------------
-/** Remove a file from the volume working directory.
-*
-* \param[in] path A path with a valid 8.3 DOS name for the file.
-*
-* \return The value one, true, is returned for success and
-* the value zero, false, is returned for failure.
-*/
-bool SdPfs::remove(const char* path) {
-  return SdBaseFile::remove(&vwd_, path);
 }
 //------------------------------------------------------------------------------
 /** Rename a file or subdirectory.
@@ -187,6 +148,50 @@ bool SdPfs::rename(const char *oldPath, const char *newPath) {
   return file.rename(&vwd_, newPath);
 }
 //------------------------------------------------------------------------------
+/** List the directory contents of the volume working directory.
+ *
+ * \param[in] pr Print stream for list.
+ *
+ * \param[in] flags The inclusive OR of
+ *
+ * LS_DATE - %Print file modification date
+ *
+ * LS_SIZE - %Print file size.
+ *
+ * LS_R - Recursive list of subdirectories.
+ */
+void SdPfs::ls(Print* pr, uint8_t flags) {
+  vwd_.ls(pr, flags);
+}
+#endif
+
+#if ENABLED_READ_ONLY
+//------------------------------------------------------------------------------
+/** Make a subdirectory in the volume working directory.
+ *
+ * \param[in] path A path with a valid 8.3 DOS name for the subdirectory.
+ *
+ * \param[in] pFlag Create missing parent directories if true.
+ *
+ * \return The value one, true, is returned for success and
+ * the value zero, false, is returned for failure.
+ */
+bool SdPfs::mkdir(const char* path) {
+  SdBaseFile sub;
+  return sub.mkdir(&vwd_, path);
+}
+//------------------------------------------------------------------------------
+/** Remove a file from the volume working directory.
+*
+* \param[in] path A path with a valid 8.3 DOS name for the file.
+*
+* \return The value one, true, is returned for success and
+* the value zero, false, is returned for failure.
+*/
+bool SdPfs::remove(const char* path) {
+  return SdBaseFile::remove(&vwd_, path);
+}
+//------------------------------------------------------------------------------
 /** Remove a subdirectory from the volume's working directory.
  *
  * \param[in] path A path with a valid 8.3 DOS name for the subdirectory.
@@ -201,3 +206,4 @@ bool SdPfs::rmdir(const char* path) {
   if (!sub.open(path, O_READ)) return false;
   return sub.rmdir();
 }
+#endif

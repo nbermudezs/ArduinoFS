@@ -3,6 +3,10 @@ SdPfsStructs.h
 SdMeta.h
 Sd2Card.h
 Sd2Card.cpp
+SdBaseFile.h
+SdBaseFile.cpp
+SdVolume.h
+SdVolume.cpp
 
 
 Don't change:

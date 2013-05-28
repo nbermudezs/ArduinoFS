@@ -62,6 +62,91 @@ bool SdVolume::pfsPut(uint32_t cluster, uint32_t value) {
   #endif  //ENABLED_READ_ONLY
 }
 
+bool SdVolume::allocContiguous(uint32_t count, uint32_t* curCluster) {
+  // start of group
+  uint32_t bgnCluster;
+  // end of group
+  uint32_t endCluster;
+  // last cluster of FAT
+  uint32_t fatEnd = clusterCount_ + 1;
+
+  // flag to save place to start next search
+  bool setStart;
+
+  // set search start cluster
+  if (*curCluster) {
+    // try to make file contiguous
+    bgnCluster = *curCluster + 1;
+
+    // don't save new start location
+    setStart = false;
+  } else {
+    // start at likely place for free cluster
+    bgnCluster = allocSearchStart_;
+
+    // save next search start if one cluster
+    setStart = count == 1;
+  }
+  // end of group
+  endCluster = bgnCluster;
+
+  // search the FAT for free clusters
+  for (uint32_t n = 0;; n++, endCluster++) {
+    // can't find space checked all clusters
+    if (n >= clusterCount_) {
+      DBG_FAIL_MACRO;
+      goto fail;
+    }
+    // past end - start from beginning of FAT
+    if (endCluster > fatEnd) {
+      bgnCluster = endCluster = 2;
+    }
+    uint32_t f;
+    if (!pfsGet(endCluster, &f)) {
+      DBG_FAIL_MACRO;
+      goto fail;
+    }
+
+    if (f != 0) {
+      // cluster in use try next cluster as bgnCluster
+      bgnCluster = endCluster + 1;
+    } else if ((endCluster - bgnCluster + 1) == count) {
+      // done - found space
+      break;
+    }
+  }
+  // mark end of chain
+  if (!pfsPutEOC(endCluster)) {
+    DBG_FAIL_MACRO;
+    goto fail;
+  }
+  // link clusters
+  while (endCluster > bgnCluster) {
+    if (!pfsPut(endCluster - 1, endCluster)) {
+      DBG_FAIL_MACRO;
+      goto fail;
+    }
+    endCluster--;
+  }
+  if (*curCluster != 0) {
+    // connect chains
+    if (!pfsPut(*curCluster, bgnCluster)) {
+      DBG_FAIL_MACRO;
+      goto fail;
+    }
+  }
+  // return first cluster number to caller
+  *curCluster = bgnCluster;
+
+  // remember possible next free cluster
+  if (setStart) allocSearchStart_ = bgnCluster + 1;
+
+  return true;
+
+ fail:
+  return false;
+}
+
 uint32_t SdVolume::clusterStartBlock(uint32_t cluster) const {
   return dataStartBlock_ + ((cluster - 2)*blocksPerCluster_);
 }
@@ -126,7 +211,7 @@ int32_t SdVolume::freeClusterCount() {
 #if !USE_SEPARATE_PFS_CACHE
 
 cache_t* SdVolume::cacheFetchPfs(uint32_t blockNumber, uint8_t options) {
-  return cacheFetch(blockNumber, options | CACHE_STATUS_FAT_BLOCK);
+  return cacheFetch(blockNumber, options | CACHE_STATUS_PFS_BLOCK);
 }
 
 cache_t* SdVolume::cacheFetch(uint32_t blockNumber, uint8_t options) {
@@ -320,7 +405,7 @@ bool SdVolume::init(Sd2Card* dev, uint8_t part) {
       DBG_FAIL_MACRO;
       goto fail;
   }
-  pfsCount_ = pbs->pfsCount;
+  pfsCount_ = 1;
   blocksPerCluster_ = pbs->sectorsPerCluster;
   
   // determine shift that is same as multiply by blocksPerCluster_
@@ -333,18 +418,16 @@ bool SdVolume::init(Sd2Card* dev, uint8_t part) {
     }
   }
 
-  sectorsPerPfs_ = pbs->sectorsPerPfs;
+  sectorsPerPfs_ = 1;
 
-  if (pfsCount_ > 0) cachePfsOffset_ = sectorsPerPfs;
-  pfsStartBlock_ = volumeStartBlock + pbs->reservedSectorCount;
-
-  rootDirEntryMax_ = pbs->rootDirEntryMax;
+  if (pfsCount_ > 0) cachePfsOffset_ = sectorsPerPfs_;
+  pfsStartBlock_ = volumeStartBlock + 1;
 
   // directory start for PFS
-  rootDirStart_ = pfsStartBlock_ + pbs->pfsCount * sectorsPerPfs_;
+  rootDirStart_ = pfsStartBlock_ + pfsCount_ * sectorsPerPfs_;
 
   // data start for PFS
-  dataStartBlock_ = pbs->bitmapStart + ((pbs->bitmapSize + 511)/512);
+  dataStartBlock_ = rootDirStart_ + ((32 * pbs->rootDirEntryCount + 511)/512);
   
   totalBlocks = pbs->totalSectors;
   
@@ -353,8 +436,6 @@ bool SdVolume::init(Sd2Card* dev, uint8_t part) {
 
   // divide by cluster size to get cluster count
   clusterCount_ >>= clusterSizeShift_;
-
-  rootDirStart_ = pbs->rootDirStart;
   rootDirEntryCount_ = pbs->rootDirEntryCount;
 
   return true;

@@ -105,6 +105,18 @@ typedef struct PFS_info pfs_info_t;
 uint32_t const PFSEOC_MIN = 0X0FFFFFF8;
 uint32_t const PFSMASK = 0X0FFFFFFF;
 
+/** Value for byte 510 of boot block or MBR */
+uint8_t const BOOTSIG0 = 0X55;
+/** Value for byte 511 of boot block or MBR */
+uint8_t const BOOTSIG1 = 0XAA;
+/** Value for bootSignature field int FAT/FAT32 boot sector */
+uint8_t const EXTENDED_BOOT_SIG = 0X29;
+
+/** Lead signature for a FSINFO sector */
+uint32_t const FSINFO_LEAD_SIG = 0x41615252;
+/** Struct signature for a FSINFO sector */
+uint32_t const FSINFO_STRUCT_SIG = 0x61417272;
+
 // Definitions for directory entries
 
 /** escape for name[0] = 0XE5 */
