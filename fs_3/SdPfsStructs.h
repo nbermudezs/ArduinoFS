@@ -83,8 +83,9 @@ struct PFS_boot{
   uint16_t pfsInfo;  
   uint8_t  bootSectorSig0;
   uint8_t  bootSectorSig1;
+  uint16_t sectorsPerFat;
   
-  uint8_t  padding[512-36];
+  uint8_t  padding[512-38];
 }__attribute__((packed));
 
 typedef struct PFS_boot pfs_boot_t;
